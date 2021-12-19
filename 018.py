@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 
+import math
+
 from tree import Tree
 
 DEBUG=False
-#DEBUG=True
+# DEBUG=True
 
 def dprint(*args):
     if DEBUG:
         print(*args)
 
 class SnailfishTree(Tree):
-    def __init__(self, left=None, right=None, value=None):
+    def __init__(self, left=None, right=None, value=None, depth=0):
         super().__init__(left, right, value)
-        self.depth = 0
+        self.depth=depth
 
     def find_root(self):
         if self.is_root():
@@ -40,29 +42,57 @@ class SnailfishTree(Tree):
     def to_list(self):
         return eval(str(self)) # TODO - be more efficient
 
-    def reduce(self):
-        dprint(self)
-        max_depth = self.set_depth()
-        first = next = self.leftmost()
-        dprint(next.depth)
+    def explode(self):
+        dprint(f'explode({self} - {self.depth})')
+        if self.is_leaf() or not (self.left.is_leaf() and self.right.is_leaf()):
+            print("this explode shouldn't happen")
+            raise Exception
+        
+        left = self.left.left_of()
+        right = self.right.right_of()
 
-        # DFS, if depth > 4, explode
+        if left:
+            left.value += self.left.value
+        if right:
+            right.value += self.right.value
+
+        self.left = None
+        self.right = None
+        self.value = 0
+
+    def split(self):
+        dprint(f'split({self})')
+        if not self.is_leaf():
+            print("this split shouldn't happen")
+            raise Exception
+        self.add_left(SnailfishTree(value=math.floor(self.value/2), depth=self.depth+1))
+        self.add_right(SnailfishTree(value=math.ceil(self.value/2), depth=self.depth+1))
+        self.value = None
+
+    def reduce(self):
+        # dprint(f'reduce({self})')
+        dprint('---------------')
         while True:
+            max_depth = self.set_depth()
+            first = next = self.leftmost()
+            dprint(self)
+
+            # DFS, if depth > 4, explode
             if max_depth > 4:
-                while next.depth < 4:
+                while next and next.depth <= 4:
                     next = next.right_of()
-                print("TODO - explode!")
-                dprint(next.find_root())
-                # continue - TODO
+                if next:
+                    next.parent.explode()
+                    continue
             
             # DFS, if value > 9, split
             next = first
-            while next and next.value < 9:
+            while next and next.value <= 9:
                 next = next.right_of()
             if next and next.value > 9:
-                print("TODO - split!")
-                dprint(next)
-                # continue - TODO
+                next.split()
+                continue
+
             break
 
         return self
@@ -72,14 +102,13 @@ class SnailfishTree(Tree):
         return tree.reduce()
 
     def __radd__(self, other):
+        self.reduce()
         return self
 
     def magnitude(self):
-        dprint(self)
         if self.is_leaf():
             return self.value
         pop_pop = 3 * self.left.magnitude() + 2 * self.right.magnitude()
-        dprint(pop_pop)
         return pop_pop
 
 if '__main__' == __name__:
@@ -101,3 +130,12 @@ if '__main__' == __name__:
     total = sum(nums)
     print(total)
     print(total.magnitude())
+
+    max_magnitude = 0
+    for num1 in nums:
+        for num2 in nums:
+            if num1 == num2:
+                continue
+            max_magnitude = max(max_magnitude, (num1 + num2).magnitude())
+            max_magnitude = max(max_magnitude, (num2 + num1).magnitude())
+    print(max_magnitude)

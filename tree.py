@@ -9,20 +9,28 @@ def dprint(*args):
 
 class Tree:
     def __init__(self, left=None, right=None, value=None):
-        self.left = left
-        self.right = right
         self.value = value
 
         self.parent = None
         self.is_left = False
         self.is_right = False
+        self.add_left(left)
+        self.add_right(right)
+    
+    def add_left(self, left):
+        self.left = left
         if self.left:
-            self.left.parent=self
+            self.left.parent = self
             self.left.is_left = True
+            self.left.is_right = False
+
+    def add_right(self, right):
+        self.right = right
         if self.right:
             self.right.parent=self
             self.right.is_right = True
-    
+            self.right.is_left = False
+
     def is_root(self):
         return None == self.parent
 
