@@ -30,6 +30,9 @@ class Position:
     def __hash__(self):
         return hash((self.x, self.y, self.z))
 
+    def manhattan(self):
+        return self.x + self.y + self.z
+
 class Beacon(Position):
     def pitch_up(self):
         return Beacon(-self.z, self.y, self.x)
@@ -167,6 +170,10 @@ if '__main__' == __name__:
 
     scanners[0].position = Beacon(0,0,0)
 
+    # a = Position(1105,-1205,1229)
+    # b = Position(-92,-2380,-20)
+    # print((a-b).total())
+
     #scanners = {4:scanners[4], 19:scanners[19], 25:scanners[25]}
     #scanners[4].position = Beacon(0,0,0)
     tried = []
@@ -210,6 +217,14 @@ if '__main__' == __name__:
         if scanner.position:
             beacons += [scanner.position + beacon for beacon in scanner.beacons]
     print(len(list(set(beacons))))
+
+    max_distance = 0
+    for scanner1 in scanners.values():
+        for scanner2 in scanners.values():
+            if scanner1 == scanner2:
+                continue
+            max_distance = max(max_distance, (scanner1.position-scanner2.position).manhattan())
+    print(max_distance)
 
     # i = 0
     # j = 1
